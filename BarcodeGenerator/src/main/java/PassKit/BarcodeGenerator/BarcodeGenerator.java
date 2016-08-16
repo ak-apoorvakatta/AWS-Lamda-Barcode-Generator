@@ -55,6 +55,7 @@ public class BarcodeGenerator {
 			// Setting Encoding Format
 			LinkedHashMap<EncodeHintType,Object> encodingFormat = new LinkedHashMap<EncodeHintType,Object>();
 			encodingFormat.put(EncodeHintType.CHARACTER_SET, encoding);
+			encodingFormat.put(EncodeHintType.MARGIN, 0);
 			
 			// Barcode Format List
 			LinkedHashMap<String,Integer> barcodeFormats = new LinkedHashMap<String,Integer>();
@@ -71,13 +72,13 @@ public class BarcodeGenerator {
 				case 1: //pdf417
 					if (height == null) { height = 53; }
 					if (width == null) { width = 210; }
-					bm = new BitMatrix(height, height);
+					bm = new BitMatrix(width, height);
 					bm = w.encode( message, BarcodeFormat.PDF_417, width, height, encodingFormat);
 					break;
 				case 2: //code128
 					if (height == null) { height = 53; }
 					if (width == null) { width = 210; }
-					bm = new BitMatrix(height, height);
+					bm = new BitMatrix(width, height);
 					bm = w.encode( message, BarcodeFormat.CODE_128, width, height, encodingFormat);
 					break;
 				case 3: //qrcode
@@ -107,14 +108,6 @@ public class BarcodeGenerator {
 			throw new InvalidInputException("Invalid Input Error - Invalid Encoding Format Error. Encoding Format Input = ["+encoding+"].");
 		} catch (Exception e) {
 			throw new Exception("Invalid Input Error: Please Check Your Input.");
-		}
-	}
-
-	public static void main(String[] args) {
-		try {
-			(new BarcodeGenerator()).getBarcode("message", "qrcode", null, null, "fail");
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
