@@ -1,6 +1,8 @@
 package PassKit.BarcodeGenerator;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 
@@ -12,6 +14,11 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 
+import org.apache.commons.io.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.*;
+
 @SuppressWarnings("serial")
 class InvalidInputException extends Exception {
 	InvalidInputException(String s) {
@@ -21,8 +28,15 @@ class InvalidInputException extends Exception {
 
 public class BarcodeGenerator {
 		
-	public String generateBarcode (LinkedHashMap<String,String> input, Context context) throws InvalidInputException, Exception {
+	public void generateBarcode (InputStream inputStream, OutputStream outputStream, Context context) throws InvalidInputException, Exception {
 		try {
+			// convert inputStream to string
+			String myJson = IOUtils.toString(inputStream, "UTF-8");
+			
+			// convert string to LinkedHashMap
+			ObjectMapper mapper = new ObjectMapper();
+			LinkedHashMap<String,String> input = mapper.readValue(myJson, new TypeReference<LinkedHashMap<String,String>>() { });
+			
 			String message = input.get("message");
 			String barcodeFormat = input.get("format");
 			Integer height = null;
@@ -31,7 +45,7 @@ public class BarcodeGenerator {
 			try { height = input.get("height") == "" ? null:Integer.parseInt(input.get("height")); } catch (Exception e) {}
 			try { width = input.get("width") == "" ? null:Integer.parseInt(input.get("width")); } catch (Exception e) {}
 			try { encoding = input.get("encoding") == "" ? "UTF-8":input.get("encoding"); } catch (Exception e) {}
-			return getBarcode(message, barcodeFormat, height, width, encoding);
+			getBarcode(message, barcodeFormat, height, width, encoding, outputStream);
 		} catch (InvalidInputException ie) {
 			throw ie;
 		} catch (com.google.zxing.WriterException we) {
@@ -41,7 +55,7 @@ public class BarcodeGenerator {
 		}
 	}
 	
-	public String getBarcode(String message, String barcodeFormat, Integer height, Integer width, String encoding) throws com.google.zxing.WriterException, InvalidInputException, Exception {
+	public void getBarcode(String message, String barcodeFormat, Integer height, Integer width, String encoding, OutputStream outputStream) throws com.google.zxing.WriterException, InvalidInputException, Exception {
 		try {
 
 			if (message == "") {
@@ -98,10 +112,14 @@ public class BarcodeGenerator {
 			}
 			
 			// Writing, Encoding and Returning Image
+			
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			MatrixToImageWriter.writeToStream(bm, "png", baos);
-			return Base64.getEncoder().encodeToString(baos.toByteArray());
-
+			
+			// Write to output stream
+			outputStream.write(baos.toByteArray());
+			//
+			//return Base64.getEncoder().encodeToString(baos.toByteArray());
 		} catch (InvalidInputException ie) {
 			throw ie;
 		} catch (com.google.zxing.WriterException we) {
