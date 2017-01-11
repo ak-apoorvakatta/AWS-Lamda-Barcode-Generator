@@ -1,8 +1,14 @@
 package PassKit.BarcodeGenerator;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 
@@ -12,6 +18,8 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.common.BitMatrix;
+
+//import com.passkit.sdk.BWILogic;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 
 import org.apache.commons.io.*;
@@ -27,11 +35,28 @@ class InvalidInputException extends Exception {
 }
 
 public class BarcodeGenerator {
-		
+	/*
+	public static void main(String[] args)  {
+    	System.out.println("Runs the gobbler.");
+    	
+		try {
+			String myJson = "{\"message\": \"test\",\"format\":\"qrcode\"}";
+	    	InputStream is = new ByteArrayInputStream( myJson.getBytes() );
+	    	
+	    	
+	    	BarcodeGenerator b = new BarcodeGenerator();
+			b.generateBarcode(is, System.out, null);
+		} catch (Exception e) {
+			System.out.print("Dang");
+		}
+    }*/
+	
 	public void generateBarcode (InputStream inputStream, OutputStream outputStream, Context context) throws InvalidInputException, Exception {
 		try {
 			// convert inputStream to string
-			String myJson = IOUtils.toString(inputStream, "UTF-8");
+			/*String myJson = IOUtils.toString(inputStream, "UTF-8");
+			
+			System.out.println(myJson);
 			
 			// convert string to LinkedHashMap
 			ObjectMapper mapper = new ObjectMapper();
@@ -41,7 +66,10 @@ public class BarcodeGenerator {
 			String barcodeFormat = input.get("format");
 			Integer height = null;
 			Integer width = null;
-			String encoding = null;
+			String encoding = null;*/
+			
+			
+			String message
 			try { height = input.get("height") == "" ? null:Integer.parseInt(input.get("height")); } catch (Exception e) {}
 			try { width = input.get("width") == "" ? null:Integer.parseInt(input.get("width")); } catch (Exception e) {}
 			try { encoding = input.get("encoding") == "" ? "UTF-8":input.get("encoding"); } catch (Exception e) {}
@@ -110,16 +138,11 @@ public class BarcodeGenerator {
 				default:
 					throw new InvalidInputException("Invalid Input Error - Invalid Barcode Format Error. BarcodeFormat Format Input = ["+barcodeFormat+"]. Supported Barcode Formats are qrcode, pdf417, code128 and aztec.");
 			}
-			
-			// Writing, Encoding and Returning Image
-			
+
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			MatrixToImageWriter.writeToStream(bm, "png", baos);
 			
-			// Write to output stream
-			outputStream.write(baos.toByteArray());
-			//
-			//return Base64.getEncoder().encodeToString(baos.toByteArray());
+			outputStream.write(Base64.getEncoder().encode(baos.toByteArray()));
 		} catch (InvalidInputException ie) {
 			throw ie;
 		} catch (com.google.zxing.WriterException we) {
